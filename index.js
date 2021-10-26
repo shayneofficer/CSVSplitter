@@ -1,9 +1,9 @@
 const fs = require('fs');
+const ProgressBar = require('./ProgressBar');
 
 const args = process.argv.slice(2);
 const fileName = args[0].slice(0, -4);
 const numberOfParts = args[1];
-
 
 const main = () => {
     if (args.length != 2 || Number.isNaN(parseInt(args[1]))) {
@@ -14,6 +14,8 @@ const main = () => {
     const file = fs.readFileSync(`./${fileName}.csv`, 'utf8');
     const headers = file.substring(0, file.indexOf('\n'));
 
+    const Bar = new ProgressBar();
+
     for (let i = 0; i < numberOfParts; i++) {
         fs.writeFile(`./${fileName}_part_${i}.csv`, `${headers}\n`, 'utf8', () => {})
     }
@@ -22,9 +24,12 @@ const main = () => {
         const arr = data.split('\n');
         const rowsPerPart = arr.length / numberOfParts;
 
+        Bar.initialize(arr.length);
+
         for (let i = 1; i < arr.length; i++) {
             fs.appendFileSync(`./${fileName}_part_${Math.floor(i / rowsPerPart)}.csv`,
                 `${arr[i]}\n`, 'utf8', () => {});
+            Bar.update(i);
         }
         console.log('\nDone!');
     })
